@@ -9,6 +9,8 @@ from controllers.control2d import *
 from data.plot import *
 from gui.gui_2d import *
 
+from phidias.phidias_interface import *
+
 from PyQt5.QtWidgets import QApplication
 
 class AckermannRobot(RoboticSystem):
@@ -21,41 +23,58 @@ class AckermannRobot(RoboticSystem):
         self.car = AckermannSteering(10, 0.8, 0.02, 0.15)
         self.speed_controller = PIDSat(2.0, 2.0, 0, 5, True)
         self.polar_controller = Polar2DController(2.0, 1.5, 10.0, math.pi/4)
+
+        self.path_controller = Path2D(1.5, 2, 2, 0.01)
+        self.path_controller.set_path([(0.5, 0.3)])
         
-        self.trajectory = StraightLine2DMotion(1.5, 2, 2)       # da sostituire con path2D
-        (x,y,_) = self.get_pose()
-        self.trajectory.start_motion((x, y), (0.1, 0.3))
+        (x, y, _) = self.get_pose()
+        self.path_controller.start((x,y))
+        self.target_reached = False
+
+        self.phidias_agent = ''
+        start_message_server_http(self)
 
         self.plotter = DataPlotter()
     
     def run(self):
-        (x_target, y_target) = self.trajectory.evaluate(self.delta_t)
-        (vref, steering) = self.polar_controller.evaluate(self.delta_t, x_target, y_target, self.get_pose())
+        pose = self.get_pose()
+        target = self.path_controller.evaluate(self.delta_t, pose)
+        
+        if target is not None:
+            (x_target, y_target) = target
+            (vref, steering) = self.polar_controller.evaluate(self.delta_t, x_target, y_target, self.get_pose())
 
-        (v, w) = self.get_speed()
-        (x,y,_) = self.get_pose()
+            (v, w) = self.get_speed()
+            (x, y, _) = self.get_pose()
 
-        torque = self.speed_controller.evaluate(self.delta_t, vref, v)
+            torque = self.speed_controller.evaluate(self.delta_t, vref, v)
 
-        self.car.evaluate(self.delta_t, torque, steering)
+            self.car.evaluate(self.delta_t, torque, steering)
 
-        self.plotter.add('t', self.t)
-        self.plotter.add('x', x)
-        self.plotter.add('y', y)
-        self.plotter.add('x_target', x_target)
-        self.plotter.add('y_target', y_target)
-        self.plotter.add('v', v)
-        self.plotter.add('w', w)
-        self.plotter.add('vref', vref)
-        self.plotter.add('steering', steering)
+            # self.plotter.add('t', self.t)
+            # self.plotter.add('x', x)
+            # self.plotter.add('y', y)
+            # self.plotter.add('x_target', x_target)
+            # self.plotter.add('y_target', y_target)
+            # self.plotter.add('v', v)
+            # self.plotter.add('w', w)
+            # self.plotter.add('vref', vref)
+            # self.plotter.add('steering', steering)
 
-        if self.t > 5:
-            self.plotter.plot(['t', 'time'], [['vref', 'VRef'], ['v', 'V']])
-            self.plotter.plot(['t', 'time'], [['steering', 'Steering'], ['w', 'W']])
-            self.plotter.plot(['t', 'time'], [['x_target', 'X Target'], ['x', 'X']])
-            self.plotter.plot(['t', 'time'], [['y_target', 'Y Target'], ['y', 'Y']])
-            self.plotter.show()
-            return False
+            # if self.t > 5:
+            #     self.plotter.plot(['t', 'time'], [['vref', 'VRef'], ['v', 'V']])
+            #     self.plotter.plot(['t', 'time'], [['steering', 'Steering'], ['w', 'W']])
+            #     self.plotter.plot(['t', 'time'], [['x_target', 'X Target'], ['x', 'X']])
+            #     self.plotter.plot(['t', 'time'], [['y_target', 'Y Target'], ['y', 'Y']])
+            #     self.plotter.show()
+            #     return False
+            
+        else:
+            if not(self.target_reached):
+                self.target_reached = True
+                if self.phidias_agent != '':
+                    print("Target")
+                    Messaging.send_belief(self.phidias_agent, 'target_reached', [], 'robot')
 
         return True
 
@@ -64,6 +83,15 @@ class AckermannRobot(RoboticSystem):
 
     def get_speed(self):
         return (self.car.v, self.car.w)
+
+    def on_belief(self, _from, name, terms):
+        print(_from, name, terms)
+        self.phidias_agent = _from
+        if name == 'go_to':
+            self.path_controller.set_path([(terms[0], terms[1])])
+            (x, y, _) = self.get_pose()
+            self.path_controller.start((x,y))
+            self.target_reached = False
 
 if __name__ == '__main__':
     cart_robot = AckermannRobot()
