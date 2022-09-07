@@ -6,6 +6,12 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QApplication, QWidget
 import utils
 
+W = 1280    # window
+H = 720     # size
+
+R = 10      # node radius
+L = 10      # block edge
+
 BCOL = {
     'red': QtGui.QColor(255,0,0),
     'green': QtGui.QColor(0,255,0),
@@ -14,7 +20,6 @@ BCOL = {
     'brown': QtGui.QColor(165,42,42)
 }
 
-L = 10  # node size
 
 class CartWindow(QWidget):
 
@@ -25,7 +30,7 @@ class CartWindow(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(0, 0, 1280, 720)
+        self.setGeometry(0, 0, W, H)
         self.setWindowTitle('Ackermann 2D Simulation')
         self.show()
 
@@ -57,22 +62,26 @@ class CartWindow(QWidget):
         (x, y, theta) = self.compound_system.get_pose()
 
         qp.setPen(QtCore.Qt.black)
-        qp.drawLine(50, 600, 1150, 600)
-        qp.drawLine(50, 600, 50, 50)
-        qp.drawLine(50, 50, 1150, 50)
-        qp.drawLine(1150, 50, 1150, 600)
+        qp.drawLine(30, 600, 1130, 600)
+        qp.drawLine(30, 600, 30, 30)
+        qp.drawLine(30, 30, 1130, 30)
+        qp.drawLine(1130, 30, 1130, 600)
 
-        qp.drawText(1170, 20, "X  = %6.3f m" % (x))
-        qp.drawText(1170, 40, "Y  = %6.3f m" % (y))
-        qp.drawText(1170, 60, "Th = %6.3f deg" % (math.degrees(theta)))
-        qp.drawText(1170, 80, "T  = %6.3f s" % (self.compound_system.t))
+        qp.drawText(1150, 40, "X  = %6.3f m" % (x))
+        qp.drawText(1150, 60, "Y  = %6.3f m" % (y))
+        qp.drawText(1150, 80, "Th = %6.3f deg" % (math.degrees(theta)))
+        qp.drawText(1150, 100, "T  = %6.3f s" % (self.compound_system.t))
+        qp.drawText(1150, 140, "Remaining Blocks:")
+        qp.drawText(1150, 160, "Red = ")
+        qp.drawText(1150, 180, "Green = ")
+        qp.drawText(1150, 200, "Blue = ")
 
         drawGraph(qp)
 
         s = self.robot_pic.size()
 
-        x_pos = int(50 + x*1150 - s.width() / 2)
-        y_pos = int(600 - y*1150 - s.height() / 2)
+        x_pos = int(30 + x*1130 - s.width() / 2)
+        y_pos = int(600 - y*1130 - s.height() / 2)
 
         t = QtGui.QTransform()
         t.translate(x_pos + s.width()/2, y_pos + s.height()/2)
@@ -96,7 +105,7 @@ def drawGraph(qp):
         elif node[0] == 'Tg': qp.setBrush(BCOL['green'])
         elif node[0] == 'Tb': qp.setBrush(BCOL['blue'])
         else: qp.setBrush(BCOL['gray'])
-        qp.drawEllipse(node[1], node[2], L, L)
+        qp.drawEllipse(node[1], node[2], R, R)
 
 
 def main():

@@ -15,6 +15,6 @@ L,850,275,False
 M,950,375,False
 N,600,550,True
 O,900,550,True
-Tr,1050,100,False
-Tg,1050,150,False
-Tb,1050,200,False
+Tr,1075,75,False
+Tg,1075,125,False
+Tb,1075,175,False
