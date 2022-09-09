@@ -10,7 +10,7 @@ W = 1280    # window
 H = 720     # size
 
 R = 10      # node radius
-L = 10      # block edge
+L = 15      # block edge
 
 BCOL = {
     'red': QtGui.QColor(255,0,0),
@@ -20,6 +20,7 @@ BCOL = {
     'brown': QtGui.QColor(165,42,42)
 }
 
+colors = ['red', 'green', 'blue']
 
 class CartWindow(QWidget):
 
@@ -80,6 +81,10 @@ class CartWindow(QWidget):
 
         s = self.robot_pic.size()
 
+        if self.compound_system.generated_blocks == True:
+            for block in self.compound_system.blocks:
+                drawBlock(qp, block.x_P_pos, block.y_P_pos, block.color)
+
         x_pos = int(30 + x*1130 - s.width() / 2)
         y_pos = int(600 - y*1130 - s.height() / 2)
 
@@ -92,7 +97,7 @@ class CartWindow(QWidget):
         qp.drawPixmap(x_pos,y_pos,self.robot_pic)
 
         qp.end()
-
+    
 
 def drawGraph(qp):
     qp.setPen(QtCore.Qt.NoPen)
@@ -106,6 +111,11 @@ def drawGraph(qp):
         elif node[0] == 'Tb': qp.setBrush(BCOL['blue'])
         else: qp.setBrush(BCOL['gray'])
         qp.drawEllipse(node[1], node[2], R, R)
+
+def drawBlock(qp, x_pos, y_pos, color):
+    qp.setPen(QtGui.QColor(0,0,0))
+    qp.setBrush(BCOL[colors[color]])
+    qp.drawRect(x_pos, y_pos, L, L)
 
 
 def main():

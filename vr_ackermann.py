@@ -1,4 +1,3 @@
-from re import S
 import sys
 sys.path.insert(0, 'lib')
 
@@ -11,6 +10,10 @@ from data.plot import *
 from gui.gui_2d import *
 
 from utils import *
+from block import *
+
+from random import seed
+from random import randint
 
 from phidias.phidias_interface import *
 
@@ -34,7 +37,11 @@ class AckermannRobot(RoboticSystem):
         self.path_controller.start((x,y))
         self.target_reached = False
 
+        self.received_path = []
+
         self.graph = readNodesFile('nodes.txt')
+        self.blocks = [ ]
+        self.generated_blocks = False
 
         self.phidias_agent = ''
         start_message_server_http(self)
@@ -55,13 +62,12 @@ class AckermannRobot(RoboticSystem):
             torque = self.speed_controller.evaluate(self.delta_t, vref, v)
 
             self.car.evaluate(self.delta_t, torque, steering)
-            
         else:
             if not(self.target_reached):
                 self.target_reached = True
                 if self.phidias_agent != '':
                     print("Target")
-                    Messaging.send_belief(self.phidias_agent, 'target_reached', [], 'robot')
+                    Messaging.send_belief(self.phidias_agent, 'targetReached', [], 'robot')
 
         return True
 
@@ -74,14 +80,20 @@ class AckermannRobot(RoboticSystem):
     def on_belief(self, _from, name, terms):
         print(_from, name, terms)
         self.phidias_agent = _from
-        if name == 'go_to':
+        if name == 'go_to_node':
             print(terms)
             for n in self.graph:
-                if terms[0] == n[0]: next_target = pixel2meter(n[1],n[2])
+                if terms[0] == n[0]: 
+                    next_target = pixel2meter(n[1],n[2])
+                    self.received_path.append(next_target)
+            print(self.received_path)
             self.path_controller.set_path([(next_target[0], next_target[1])])
             (x, y, _) = self.get_pose()
             self.path_controller.start((x,y))
             self.target_reached = False
+
+        if name == 'generate_blocks':
+            self.generate_blocks()
 
     def get_plot(self, target, vref, steering):
         (x, y) = self.get_pose()
@@ -107,7 +119,25 @@ class AckermannRobot(RoboticSystem):
             self.plotter.show()
             return False
 
+    def generate_blocks(self):
+        self.blocks.clear()
+
+        for n in self.graph:
+            if n[3] == True: 
+                c = randint(0,2)
+                in_n = n[0]
+                (x_M, y_M) = pixel2meter(n[1],n[2])
+                block = Block(in_n,n[1],n[2],x_M,y_M,c)
+                self.blocks.append(block)
+
+                if self.generated_blocks == False:
+                    self.generated_blocks = True
+
+        print("There are " + str(len(self.blocks)) + " blocks")
+
+
 if __name__ == '__main__':
+    #seed(1)
     cart_robot = AckermannRobot()
     app = QApplication(sys.argv)
     ex = CartWindow(cart_robot, 'ackermann_robot_2d.png')
