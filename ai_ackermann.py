@@ -219,7 +219,7 @@ class main(Agent):
             sense()
         ]
 
-        closeRobotNode(Node, D) << (robotNode(Node) & lt(D, 1.22) & slotNotChecked(Node))
+        closeRobotNode(Node, D) << (robotNode(Node) & lt(D, 0) & slotNotChecked(Node))
 
         +distance(D)[{'from':_A}] / closeRobotNode(Node, D) >> [ 
             show_line("[ROBOT] : Block found in slot ", Node),
@@ -236,6 +236,24 @@ class main(Agent):
             +not_navigating("1"), 
             -slotNotChecked(robot), 
             follow_path(robot)
+        ]
+
+        +color(C)[{'from':_A}] / (block(X) & towerColor(Node, C, N) & geq(N, 3)) >> [ 
+            show_line("[ROBOT] : Tower ", C, " full, cannot pick block sampled in slot ", X),
+            -block(X),
+            -slotNotChecked(X),
+            +not_navigating("1"),
+            resolve()
+        ]
+
+        +color(C)[{'from':_A}] / (block(X) & towerColor(Node, C, N) & lt(N, 4)) >> [ 
+            show_line("[ROBOT] : Color ", C, " sampled in slot ", X),
+            -block(X),
+            +heldBlock(X,C),
+            -slotNotChecked(X),
+            send_heldBlock(X),
+            +targetNode(Node),
+            go_to_tower(Node)
         ]
 
         go_to_tower(Node) / (heldBlock(X,C) & towerColor(Node, C, Z))  >> [

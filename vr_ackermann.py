@@ -10,10 +10,7 @@ from data.plot import *
 from gui.gui_2d import *
 
 from utils import *
-from block import *
-
-from random import seed
-from random import randint
+from world import *
 
 from phidias.phidias_interface import *
 
@@ -35,13 +32,19 @@ class AckermannRobot(RoboticSystem):
         
         (x, y, _) = self.get_pose()
         self.path_controller.start((x,y))
+        self.last_target = (0,0)
         self.target_reached = False
 
         self.received_path = []
 
-        self.graph = readNodesFile('nodes.txt')
+        self.world = World()
+
         self.blocks = [ ]
         self.generated_blocks = False
+
+        self.red_held = False
+        self.green_held = False
+        self.blue_held = False
 
         self.phidias_agent = ''
         start_message_server_http(self)
@@ -67,7 +70,7 @@ class AckermannRobot(RoboticSystem):
                 self.target_reached = True
                 if self.phidias_agent != '':
                     print("Target")
-                    Messaging.send_belief(self.phidias_agent, 'targetReached', [], 'robot')
+                    Messaging.send_belief(self.phidias_agent, 'target_got', [], 'robot')
 
         return True
 
@@ -82,18 +85,24 @@ class AckermannRobot(RoboticSystem):
         self.phidias_agent = _from
         if name == 'go_to_node':
             print(terms)
-            for n in self.graph:
+            for n in self.world.nodes:
                 if terms[0] == n[0]: 
-                    next_target = pixel2meter(n[1],n[2])
-                    self.received_path.append(next_target)
+                    self.last_target = pixel2meter(n[1],n[2])
+                    self.received_path.append(self.last_target)
             print(self.received_path)
-            self.path_controller.set_path([(next_target[0], next_target[1])])
+            self.path_controller.set_path([(self.last_target[0], self.last_target[1])])
             (x, y, _) = self.get_pose()
             self.path_controller.start((x,y))
             self.target_reached = False
 
         if name == 'generate_blocks':
-            self.generate_blocks()
+            self.world.generateBlocks()
+
+        if name == 'sense_distance':
+            self.calculate_distance()
+
+        if name == 'sense_color':
+            self.detect_color()
 
     def get_plot(self, target, vref, steering):
         (x, y) = self.get_pose()
@@ -119,26 +128,18 @@ class AckermannRobot(RoboticSystem):
             self.plotter.show()
             return False
 
-    def generate_blocks(self):
-        self.blocks.clear()
+    def calculate_distance(self):
+        print("Calculating distance from nearest block")
+        dist = self.world.closestBlockDistance(self.get_pose())
+        Messaging.send_belief(self.phidias_agent, 'distance', [dist], 'robot')
 
-        for n in self.graph:
-            if n[3] == True: 
-                c = randint(0,2)
-                in_n = n[0]
-                (x_M, y_M) = pixel2meter(n[1],n[2])
-                block = Block(in_n,n[1],n[2],x_M,y_M,c)
-                self.blocks.append(block)
-
-                if self.generated_blocks == False:
-                    self.generated_blocks = True
-
-        print("There are " + str(len(self.blocks)) + " blocks")
-
+    def detect_color(self):
+        print("Detecting nearest block color")
+        color = self.world.closestBlockColor(self.get_pose())
+        Messaging.send_belief(self.phidias_agent, 'color', [color], 'robot')
 
 if __name__ == '__main__':
-    #seed(1)
     cart_robot = AckermannRobot()
     app = QApplication(sys.argv)
-    ex = CartWindow(cart_robot, 'ackermann_robot_2d.png')
+    ex = CartWindow(cart_robot, cart_robot.world, 'ackermann_robot_2d.png')
     sys.exit(app.exec_())

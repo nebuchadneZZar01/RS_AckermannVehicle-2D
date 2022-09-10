@@ -4,7 +4,7 @@ import pathlib
 
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QApplication, QWidget
-import utils
+from utils import *
 
 W = 1280    # window
 H = 720     # size
@@ -24,9 +24,10 @@ colors = ['red', 'green', 'blue']
 
 class CartWindow(QWidget):
 
-    def __init__(self, _compound_sys, _img = 'mobile_robot_2d.png'):
+    def __init__(self, _compound_sys, _world, _img = 'mobile_robot_2d.png'):
         super(CartWindow, self).__init__()
         self.compound_system = _compound_sys
+        self.world = _world
         self.image = _img
         self.initUI()
 
@@ -73,16 +74,16 @@ class CartWindow(QWidget):
         qp.drawText(1150, 80, "Th = %6.3f deg" % (math.degrees(theta)))
         qp.drawText(1150, 100, "T  = %6.3f s" % (self.compound_system.t))
         qp.drawText(1150, 140, "Remaining Blocks:")
-        qp.drawText(1150, 160, "Red = ")
-        qp.drawText(1150, 180, "Green = ")
-        qp.drawText(1150, 200, "Blue = ")
+        qp.drawText(1150, 160, "Red = " + str(self.world.getBlocksNumberByColor(0)))
+        qp.drawText(1150, 180, "Green = " + str(self.world.getBlocksNumberByColor(1)))
+        qp.drawText(1150, 200, "Blue = " + str(self.world.getBlocksNumberByColor(2)))
 
-        drawGraph(qp)
+        drawGraph(qp, self.world)
 
         s = self.robot_pic.size()
 
-        if self.compound_system.generated_blocks == True:
-            for block in self.compound_system.blocks:
+        if self.world.generated_blocks == True:
+            for block in self.world.blocks:
                 drawBlock(qp, block.x_P_pos, block.y_P_pos, block.color)
 
         x_pos = int(30 + x*1130 - s.width() / 2)
@@ -99,10 +100,10 @@ class CartWindow(QWidget):
         qp.end()
     
 
-def drawGraph(qp):
+def drawGraph(qp, world):
     qp.setPen(QtCore.Qt.NoPen)
 
-    (nodes, links) = utils.readGraphFiles('nodes.txt', 'links.txt')
+    nodes = world.nodes 
 
     for node in nodes:
         if node[0] == 'START': qp.setBrush(BCOL['brown'])
@@ -111,6 +112,7 @@ def drawGraph(qp):
         elif node[0] == 'Tb': qp.setBrush(BCOL['blue'])
         else: qp.setBrush(BCOL['gray'])
         qp.drawEllipse(node[1], node[2], R, R)
+
 
 def drawBlock(qp, x_pos, y_pos, color):
     qp.setPen(QtGui.QColor(0,0,0))

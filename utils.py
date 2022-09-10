@@ -1,4 +1,5 @@
 
+import math
 from posixpath import split
 
 def str2bool(v):
@@ -39,3 +40,6 @@ def pixel2meter(p_x, p_y, W=10, H=10):
     m_y = (600 - H - p_y)/1280
 
     return m_x, m_y
+
+def euclideanDistance(node_A, node_B):
+    return math.sqrt((node_A[0]-node_B[0])**2 + (node_A[1]-node_B[1])**2)
