@@ -26,6 +26,11 @@ class Block:
     def getMPos(self):
         return (self.x_M_pos, self.y_M_pos)
 
+    def getColor(self):
+        if self.color == 0: return 'red'
+        elif self.color == 1: return 'green'
+        elif self.color == 2: return 'blue'
+
 class Tower:
     def __init__(self, color):
         self.color = color
@@ -34,6 +39,11 @@ class Tower:
     def addBlock(self):
         self.n_blocks += 1
 
+    def getColor(self):
+        if self.color == 0: return 'red'
+        elif self.color == 1: return 'green'
+        elif self.color == 2: return 'blue'
+
 class World:
     def __init__(self):
         seed(1)
@@ -41,8 +51,11 @@ class World:
         self.edges = readLinksFile('links.txt')
 
         self.blocks = []
-        self.towers = []
         self.generated_blocks = False
+
+        self.red_tower = Tower(0)
+        self.green_tower = Tower(1)
+        self.blue_tower = Tower(2)
 
     def generateBlocks(self):
         self.blocks.clear()
@@ -76,7 +89,8 @@ class World:
             dist = euclideanDistance(robot, block.getMPos())
             if dist < min_dist:
                 min_dist = dist
-                col = block.color
+                col = block.getColor()
+        print("nearest block color is", col)
 
         return col
 
@@ -89,4 +103,7 @@ class World:
 
     def getBlocksNumber(self):
         return len(self.blocks)
+
+    def removeBlock(self, block):
+        self.blocks.remove(block)
 

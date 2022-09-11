@@ -1,7 +1,6 @@
 node,pos_x,pos_y,block
 START,45,595,False
-A,250,100,False
-B,500,150,True
+A,250,100,True
 C,750,100,True
 D,150,225,True
 E,250,300,True

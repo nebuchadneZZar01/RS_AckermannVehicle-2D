@@ -219,7 +219,7 @@ class main(Agent):
             sense()
         ]
 
-        closeRobotNode(Node, D) << (robotNode(Node) & lt(D, 0) & slotNotChecked(Node))
+        closeRobotNode(Node, D) << (robotNode(Node) & lt(D, 0.5) & slotNotChecked(Node))
 
         +distance(D)[{'from':_A}] / closeRobotNode(Node, D) >> [ 
             show_line("[ROBOT] : Block found in slot ", Node),
@@ -227,6 +227,7 @@ class main(Agent):
         ]
 
         +distance(D)[{'from':_A}] / (targetIntermediateNode(Node) & targetNode(Node)) >> [ 
+            show_line("[ROBOT COMMUNICATION] : Received ", D, " from ROBOT"),
             +not_navigating("1"),
             -slotNotChecked(Node), 
             resolve()
@@ -249,14 +250,14 @@ class main(Agent):
         +color(C)[{'from':_A}] / (block(X) & towerColor(Node, C, N) & lt(N, 4)) >> [ 
             show_line("[ROBOT] : Color ", C, " sampled in slot ", X),
             -block(X),
-            +heldBlock(X,C),
+            +heldBlock(X, C),
             -slotNotChecked(X),
             send_heldBlock(X),
             +targetNode(Node),
             go_to_tower(Node)
         ]
 
-        go_to_tower(Node) / (heldBlock(X,C) & towerColor(Node, C, Z))  >> [
+        go_to_tower(Node) / (heldBlock(X, C) & towerColor(Node, C, Z))  >> [
             -towerColor(Node, C, Z),
             "Z = Z + 1", 
             +towerColor(Node, C, Z),
@@ -315,9 +316,10 @@ ag = main()
 ag.start()
 
 for n in nodes:
+    ag.assert_belief(slotNotChecked(n[0]))
+
+for n in nodes:
     if n[3] == True: ag.assert_belief(blockSlot(n[0]))
-    else:
-        if n[0][0] != 'T': ag.assert_belief(slotNotChecked(n[0]))
 
 ag.assert_belief(robotNode('START'))
 ag.assert_belief(not_navigating("1"))

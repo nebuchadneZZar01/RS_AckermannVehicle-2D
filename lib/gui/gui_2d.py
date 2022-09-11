@@ -39,6 +39,11 @@ class CartWindow(QWidget):
         current_path = pathlib.Path(__file__).parent.resolve()
         image = str(current_path) + '/../icons/' + self.image
 
+        self.img = image
+        self.red_image = str(current_path) + '/../icons/' + 'ackermann_robot_redB.png'
+        self.green_image = str(current_path) + '/../icons/' + 'ackermann_robot_greenB.png'
+        self.blue_image = str(current_path) + '/../icons/' + 'ackermann_robot_blueB.png'
+
         self.robot_pic = QtGui.QPixmap(image)
 
         self.delta_t = 1e-4 # 0.1ms of time-tick
@@ -85,6 +90,18 @@ class CartWindow(QWidget):
         if self.world.generated_blocks == True:
             for block in self.world.blocks:
                 drawBlock(qp, block.x_P_pos, block.y_P_pos, block.color)
+
+        if self.compound_system.held_block:
+            if self.compound_system.held_block.getColor() == 'red': self.robot_pic = QtGui.QPixmap(self.red_image)
+            elif self.compound_system.held_block.getColor() == 'green': self.robot_pic = QtGui.QPixmap(self.green_image)
+            elif self.compound_system.held_block.getColor() == 'blue': self.robot_pic = QtGui.QPixmap(self.blue_image)
+        else: self.robot_pic = QtGui.QPixmap(self.img)
+
+        # if self.world.red_tower.n_blocks >= 1: drawBlock()
+
+        # if self.world.green_tower.n_blocks >= 1: drawBlock()
+
+        # if self.world.blue_tower.n_blocks >= 1: drawBlock()
 
         x_pos = int(30 + x*1130 - s.width() / 2)
         y_pos = int(600 - y*1130 - s.height() / 2)

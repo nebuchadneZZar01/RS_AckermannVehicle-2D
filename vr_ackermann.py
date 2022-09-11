@@ -39,12 +39,8 @@ class AckermannRobot(RoboticSystem):
 
         self.world = World()
 
-        self.blocks = [ ]
         self.generated_blocks = False
-
-        self.red_held = False
-        self.green_held = False
-        self.blue_held = False
+        self.held_block = None
 
         self.phidias_agent = ''
         start_message_server_http(self)
@@ -104,6 +100,15 @@ class AckermannRobot(RoboticSystem):
         if name == 'sense_color':
             self.detect_color()
 
+        if name == 'send_held_block':
+            for block in self.world.blocks:
+                if block.in_node == terms[0]:
+                    self.take_block(block)
+
+        if name == 'releaseBlockToTower':
+            self.release_block()
+            
+
     def get_plot(self, target, vref, steering):
         (x, y) = self.get_pose()
         (x_target, y_target) = target
@@ -131,12 +136,27 @@ class AckermannRobot(RoboticSystem):
     def calculate_distance(self):
         print("Calculating distance from nearest block")
         dist = self.world.closestBlockDistance(self.get_pose())
-        Messaging.send_belief(self.phidias_agent, 'distance', [dist], 'robot')
+        if dist is None: params = []
+        else: params = [dist]
+        Messaging.send_belief(self.phidias_agent, 'distance', params, 'robot')
 
     def detect_color(self):
         print("Detecting nearest block color")
         color = self.world.closestBlockColor(self.get_pose())
-        Messaging.send_belief(self.phidias_agent, 'color', [color], 'robot')
+        if color is None: params = []
+        else: params = [color]
+        Messaging.send_belief(self.phidias_agent, 'color', params, 'robot')
+
+    def take_block(self, block):
+        self.held_block = block
+        self.world.removeBlock(block)
+
+    def release_block(self):
+        if self.held_block.getColor() == 'red': self.world.red_tower.addBlock()
+        elif self.held_block.getColor() == 'green': self.world.green_tower.addBlock()
+        elif self.held_block.getColor() == 'blue': self.world.blue_tower.addBlock()
+        self.held_block = None
+
 
 if __name__ == '__main__':
     cart_robot = AckermannRobot()

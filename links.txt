@@ -1,11 +1,11 @@
 node_src,node_dest,cost
 START,A,2
 START,D,2
-A,B,5
-A,D,2
-B,C,5
-B,F,3
+A,C,5
 C,G,3
+C,Tr,2
+C,Tg,2
+C,Tb,2
 D,E,2
 E,F,4
 E,H,4
