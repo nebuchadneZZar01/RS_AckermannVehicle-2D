@@ -97,11 +97,11 @@ class CartWindow(QWidget):
             elif self.compound_system.held_block.getColor() == 'blue': self.robot_pic = QtGui.QPixmap(self.blue_image)
         else: self.robot_pic = QtGui.QPixmap(self.img)
 
-        # if self.world.red_tower.n_blocks >= 1: drawBlock()
+        if self.world.red_tower.n_blocks >= 1: drawBlock(qp, self.world.red_tower.x_P_pos, self.world.red_tower.y_P_pos, 0)
 
-        # if self.world.green_tower.n_blocks >= 1: drawBlock()
+        if self.world.green_tower.n_blocks >= 1: drawBlock(qp, self.world.green_tower.x_P_pos, self.world.green_tower.y_P_pos, 1)
 
-        # if self.world.blue_tower.n_blocks >= 1: drawBlock()
+        if self.world.blue_tower.n_blocks >= 1: drawBlock(qp, self.world.blue_tower.x_P_pos, self.world.blue_tower.y_P_pos, 1)
 
         x_pos = int(30 + x*1130 - s.width() / 2)
         y_pos = int(600 - y*1130 - s.height() / 2)

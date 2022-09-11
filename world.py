@@ -32,7 +32,11 @@ class Block:
         elif self.color == 2: return 'blue'
 
 class Tower:
-    def __init__(self, color):
+    def __init__(self, x_P_pos, y_P_pos, x_M_pos, y_M_pos, color):
+        self.x_P_pos = x_P_pos
+        self.y_P_pos = y_P_pos
+        self.x_M_pos = x_M_pos
+        self.y_M_pos = y_M_pos
         self.color = color
         self.n_blocks = 0
 
@@ -44,6 +48,9 @@ class Tower:
         elif self.color == 1: return 'green'
         elif self.color == 2: return 'blue'
 
+    def getMPos(self):
+        return (self.x_M_pos, self.y_M_pos)
+
 class World:
     def __init__(self):
         seed(1)
@@ -53,9 +60,12 @@ class World:
         self.blocks = []
         self.generated_blocks = False
 
-        self.red_tower = Tower(0)
-        self.green_tower = Tower(1)
-        self.blue_tower = Tower(2)
+        for node in self.nodes:
+            (x_M, y_M) = pixel2meter(node[1],node[2])
+            if len(node[0]) == 2:
+                if node[0][1] == 'r': self.red_tower = Tower(node[1],node[2],x_M,y_M,0)
+                if node[0][1] == 'g': self.green_tower = Tower(node[1],node[2],x_M,y_M,1)
+                if node[0][1] == 'b': self.blue_tower = Tower(node[1],node[2],x_M,y_M,2)
 
     def generateBlocks(self):
         self.blocks.clear()
