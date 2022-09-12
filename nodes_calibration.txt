@@ -1,0 +1,5 @@
+node,pos_x,pos_y,block
+A,30,600,False
+B,1130,600,False
+C,30,30,False
+D,1130,30,False

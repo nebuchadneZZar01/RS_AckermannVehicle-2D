@@ -83,7 +83,7 @@ class AckermannRobot(RoboticSystem):
             print(terms)
             for n in self.world.nodes:
                 if terms[0] == n[0]: 
-                    self.last_target = pixel2meter(n[1],n[2])
+                    self.last_target = pixel2meter(n[1],n[2],10,10,(70,40))
                     self.received_path.append(self.last_target)
             print(self.received_path)
             self.path_controller.set_path([(self.last_target[0], self.last_target[1])])

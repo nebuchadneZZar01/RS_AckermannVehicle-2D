@@ -1,0 +1,5 @@
+node_src,node_dest,cost
+A,B,4
+A,C,4
+D,C,4
+D,B,4

@@ -191,7 +191,7 @@ class main(Agent):
             +targetReached(Node),
             +robotNode(Node),
             +not_navigating("1"),
-            -heldBlock(X,C),
+            -heldBlock(X, C),
             send_releaseBlock(),
             resolve()
         ]
@@ -316,7 +316,8 @@ ag = main()
 ag.start()
 
 for n in nodes:
-    ag.assert_belief(slotNotChecked(n[0]))
+    if len(n[0]) == 1:
+        ag.assert_belief(slotNotChecked(n[0]))
 
 for n in nodes:
     if n[3] == True: ag.assert_belief(blockSlot(n[0]))
@@ -326,6 +327,7 @@ ag.assert_belief(not_navigating("1"))
 
 for e in edges:
     ag.assert_belief(edge(e[0],e[1],e[2]))
+    ag.assert_belief(edge(e[1],e[0],e[2]))
 
 ag.assert_belief(towerColor('Tr','red',0))
 ag.assert_belief(towerColor('Tg','green',0))

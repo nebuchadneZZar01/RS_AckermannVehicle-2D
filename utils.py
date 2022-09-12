@@ -35,9 +35,9 @@ def readGraphFiles(nodes_file, links_file):
 
     return nodes, links 
 
-def pixel2meter(p_x, p_y, W=10, H=10):
-    m_x = (30 + W + p_x)/1280
-    m_y = (600 - H - p_y)/1280
+def pixel2meter(p_x, p_y, W, H, bot_size):
+    m_x = (- 30 + p_x)/1130
+    m_y = (600 - p_y)/1130
 
     return m_x, m_y
 

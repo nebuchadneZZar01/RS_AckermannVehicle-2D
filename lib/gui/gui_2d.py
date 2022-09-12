@@ -3,7 +3,7 @@ import math
 import pathlib
 
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from utils import *
 
 W = 1280    # window
@@ -30,6 +30,7 @@ class CartWindow(QWidget):
         self.world = _world
         self.image = _img
         self.initUI()
+        self.setMouseTracking(True)
 
     def initUI(self):
         self.setGeometry(0, 0, W, H)
@@ -97,11 +98,17 @@ class CartWindow(QWidget):
             elif self.compound_system.held_block.getColor() == 'blue': self.robot_pic = QtGui.QPixmap(self.blue_image)
         else: self.robot_pic = QtGui.QPixmap(self.img)
 
-        if self.world.red_tower.n_blocks >= 1: drawBlock(qp, self.world.red_tower.x_P_pos, self.world.red_tower.y_P_pos, 0)
+        if self.world.red_tower is not None:
+            if self.world.red_tower.n_blocks >= 1: 
+                drawBlock(qp, self.world.red_tower.x_P_pos, self.world.red_tower.y_P_pos, 0)
 
-        if self.world.green_tower.n_blocks >= 1: drawBlock(qp, self.world.green_tower.x_P_pos, self.world.green_tower.y_P_pos, 1)
+        if self.world.green_tower is not None:
+            if self.world.green_tower.n_blocks >= 1: 
+                drawBlock(qp, self.world.green_tower.x_P_pos, self.world.green_tower.y_P_pos, 1)
 
-        if self.world.blue_tower.n_blocks >= 1: drawBlock(qp, self.world.blue_tower.x_P_pos, self.world.blue_tower.y_P_pos, 1)
+        if self.world.blue_tower is not None:
+            if self.world.blue_tower.n_blocks >= 1:
+                drawBlock(qp, self.world.blue_tower.x_P_pos, self.world.blue_tower.y_P_pos, 2)
 
         x_pos = int(30 + x*1130 - s.width() / 2)
         y_pos = int(600 - y*1130 - s.height() / 2)
@@ -115,6 +122,9 @@ class CartWindow(QWidget):
         qp.drawPixmap(x_pos,y_pos,self.robot_pic)
 
         qp.end()
+
+    def mousePressEvent(self, event):
+        print('Mouse coords: ( %d : %d )' % (event.x(), event.y()))
     
 
 def drawGraph(qp, world):

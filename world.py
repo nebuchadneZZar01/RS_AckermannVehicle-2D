@@ -60,12 +60,17 @@ class World:
         self.blocks = []
         self.generated_blocks = False
 
+        self.red_tower = None
+        self.green_tower = None
+        self.blue_tower = None
+
         for node in self.nodes:
-            (x_M, y_M) = pixel2meter(node[1],node[2])
+            (x_M, y_M) = pixel2meter(node[1],node[2],10,10,(70,40))
             if len(node[0]) == 2:
                 if node[0][1] == 'r': self.red_tower = Tower(node[1],node[2],x_M,y_M,0)
                 if node[0][1] == 'g': self.green_tower = Tower(node[1],node[2],x_M,y_M,1)
                 if node[0][1] == 'b': self.blue_tower = Tower(node[1],node[2],x_M,y_M,2)
+
 
     def generateBlocks(self):
         self.blocks.clear()
@@ -74,7 +79,7 @@ class World:
             if n[3] == True: 
                 c = randint(0,2)
                 in_n = n[0]
-                (x_M, y_M) = pixel2meter(n[1],n[2])
+                (x_M, y_M) = pixel2meter(n[1],n[2],10,10,(70,40))
                 block = Block(in_n,n[1],n[2],x_M,y_M,c)
                 self.blocks.append(block)
 
@@ -94,13 +99,15 @@ class World:
         return min_dist
 
     def closestBlockColor(self, robot):
+        col = None
         min_dist = INF
         for block in self.blocks:
             dist = euclideanDistance(robot, block.getMPos())
             if dist < min_dist:
                 min_dist = dist
                 col = block.getColor()
-        print("nearest block color is", col)
+        if col: 
+            print("nearest block color is", col)
 
         return col
 
