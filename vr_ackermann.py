@@ -45,6 +45,7 @@ class AckermannRobot(RoboticSystem):
         self.phidias_agent = ''
         start_message_server_http(self)
 
+        self.current_cmd = 'Waiting for command from AI server...'
         self.plotter = DataPlotter()
     
     def run(self):
@@ -65,7 +66,7 @@ class AckermannRobot(RoboticSystem):
             if not(self.target_reached):
                 self.target_reached = True
                 if self.phidias_agent != '':
-                    print("Target")
+                    print("[ACKERMANN] : Target reached")
                     Messaging.send_belief(self.phidias_agent, 'target_got', [], 'robot')
 
         return True
@@ -80,19 +81,21 @@ class AckermannRobot(RoboticSystem):
         print(_from, name, terms)
         self.phidias_agent = _from
         if name == 'go_to_node':
-            print(terms)
             for n in self.world.nodes:
                 if terms[0] == n[0]: 
                     self.last_target = pixel2meter(n[1],n[2],10,10,(70,40))
                     self.received_path.append(self.last_target)
-            print(self.received_path)
+            print('[CURRENT PATH] : ', self.received_path)
             self.path_controller.set_path([(self.last_target[0], self.last_target[1])])
             (x, y, _) = self.get_pose()
             self.path_controller.start((x,y))
             self.target_reached = False
 
+            self.current_cmd = 'Going to node ' + terms[0]
+
         if name == 'generate_blocks':
             self.world.generateBlocks()
+            self.current_cmd = 'The blocks have been detected'
 
         if name == 'sense_distance':
             self.calculate_distance()
@@ -104,9 +107,15 @@ class AckermannRobot(RoboticSystem):
             for block in self.world.blocks:
                 if block.in_node == terms[0]:
                     self.take_block(block)
+                    self.current_cmd = 'Take block'
 
         if name == 'releaseBlockToTower':
             self.release_block()
+            self.current_cmd = 'Release block in tower'
+
+
+    def get_current_cmd(self):
+        return self.current_cmd
             
 
     def get_plot(self, target, vref, steering):
@@ -134,14 +143,14 @@ class AckermannRobot(RoboticSystem):
             return False
 
     def calculate_distance(self):
-        print("Calculating distance from nearest block")
+        print("[ACKERMANN] : Calculating distance from nearest block")
         dist = self.world.closestBlockDistance(self.get_pose())
         if dist is None: params = []
         else: params = [dist]
         Messaging.send_belief(self.phidias_agent, 'distance', params, 'robot')
 
     def detect_color(self):
-        print("Detecting nearest block color")
+        print("[ACKERMANN] : Detecting nearest block color")
         color = self.world.closestBlockColor(self.get_pose())
         if color is None: params = []
         else: params = [color]
@@ -157,6 +166,7 @@ class AckermannRobot(RoboticSystem):
         elif self.held_block.getColor() == 'blue': self.world.blue_tower.addBlock()
         self.held_block = None
 
+    
 
 if __name__ == '__main__':
     cart_robot = AckermannRobot()

@@ -3,7 +3,7 @@ import math
 import pathlib
 
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtWidgets import QWidget
 from utils import *
 
 W = 1280    # window
@@ -83,6 +83,12 @@ class CartWindow(QWidget):
         qp.drawText(1150, 160, "Red = " + str(self.world.getBlocksNumberByColor(0)))
         qp.drawText(1150, 180, "Green = " + str(self.world.getBlocksNumberByColor(1)))
         qp.drawText(1150, 200, "Blue = " + str(self.world.getBlocksNumberByColor(2)))
+        qp.drawText(1150, 240, "Blocks in Towers:")
+        qp.drawText(1150, 260, "Red = " + str(self.world.red_tower.n_blocks))
+        qp.drawText(1150, 280, "Green = " + str(self.world.green_tower.n_blocks))
+        qp.drawText(1150, 300, "Blue = " + str(self.world.blue_tower.n_blocks))
+
+        paintCommand(qp, self.compound_system.get_current_cmd())
 
         drawGraph(qp, self.world)
 
@@ -122,9 +128,6 @@ class CartWindow(QWidget):
         qp.drawPixmap(x_pos,y_pos,self.robot_pic)
 
         qp.end()
-
-    def mousePressEvent(self, event):
-        print('Mouse coords: ( %d : %d )' % (event.x(), event.y()))
     
 
 def drawGraph(qp, world):
@@ -145,6 +148,10 @@ def drawBlock(qp, x_pos, y_pos, color):
     qp.setPen(QtGui.QColor(0,0,0))
     qp.setBrush(BCOL[colors[color]])
     qp.drawRect(x_pos, y_pos, L, L)
+
+
+def paintCommand(qp, command):
+    qp.drawText(500, 665, "COMMAND: " + command)
 
 
 def main():

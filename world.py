@@ -86,7 +86,7 @@ class World:
                 if self.generated_blocks == False:
                     self.generated_blocks = True
 
-        print("There are " + str(len(self.blocks)) + " blocks")
+        print("[WORLD] : There are " + str(len(self.blocks)) + " blocks")
 
     def closestBlockDistance(self, robot):
         min_dist = INF
@@ -94,7 +94,7 @@ class World:
             dist = euclideanDistance(robot, block.getMPos())
             if dist < min_dist:
                 min_dist = dist
-        print("Nearest block is at dist", min_dist)
+        print("[WORLD] : Nearest block is at dist", min_dist)
 
         return min_dist
 
@@ -107,7 +107,7 @@ class World:
                 min_dist = dist
                 col = block.getColor()
         if col: 
-            print("nearest block color is", col)
+            print("[WORLD] : Nearest block color is", col)
 
         return col
 
