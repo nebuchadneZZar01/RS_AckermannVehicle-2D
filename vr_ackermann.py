@@ -24,10 +24,10 @@ class AckermannRobot(RoboticSystem):
         # radius = 2 cm
         # lateral distance = 15 cm
         self.car = AckermannSteering(10, 0.8, 0.02, 0.15)
-        self.speed_controller = PIDSat(2.0, 2.0, 0, 5, True)
-        self.polar_controller = Polar2DController(2.0, 1.5, 10.0, math.pi/4)
+        self.speed_controller = PIDSat(8.0, 2.0, 0, 5, True)
+        self.polar_controller = Polar2DController(2.0, 1.5, 40.0, math.pi/3)
 
-        self.path_controller = Path2D(1.5, 2, 2, 0.01)
+        self.path_controller = Path2D(1.5, 2, 2, 0.02)
         self.path_controller.set_path([(0.0, 0.0)])
         
         (x, y, _) = self.get_pose()
@@ -62,6 +62,7 @@ class AckermannRobot(RoboticSystem):
             torque = self.speed_controller.evaluate(self.delta_t, vref, v)
 
             self.car.evaluate(self.delta_t, torque, steering)
+            #self.get_plot(target, vref, steering)
         else:
             if not(self.target_reached):
                 self.target_reached = True
@@ -85,7 +86,7 @@ class AckermannRobot(RoboticSystem):
                 if terms[0] == n[0]: 
                     self.last_target = pixel2meter(n[1],n[2],10,10,(70,40))
                     self.received_path.append(self.last_target)
-            print('[CURRENT PATH] : ', self.received_path)
+            print('[CURRENT PATH] :', self.received_path)
             self.path_controller.set_path([(self.last_target[0], self.last_target[1])])
             (x, y, _) = self.get_pose()
             self.path_controller.start((x,y))
@@ -113,13 +114,12 @@ class AckermannRobot(RoboticSystem):
             self.release_block()
             self.current_cmd = 'Release block in tower'
 
-
     def get_current_cmd(self):
         return self.current_cmd
             
 
     def get_plot(self, target, vref, steering):
-        (x, y) = self.get_pose()
+        (x, y, _) = self.get_pose()
         (x_target, y_target) = target
         (v, w) = self.get_speed()
         (vref, steering)
@@ -134,7 +134,7 @@ class AckermannRobot(RoboticSystem):
         self.plotter.add('vref', vref)
         self.plotter.add('steering', steering)
 
-        if self.t > 5:
+        if self.t > 40:
             self.plotter.plot(['t', 'time'], [['vref', 'VRef'], ['v', 'V']])
             self.plotter.plot(['t', 'time'], [['steering', 'Steering'], ['w', 'W']])
             self.plotter.plot(['t', 'time'], [['x_target', 'X Target'], ['x', 'X']])

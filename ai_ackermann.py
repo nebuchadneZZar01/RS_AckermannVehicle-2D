@@ -100,14 +100,14 @@ class main(Agent):
         go(X, Z) >> [ +go_to(X, Z)[{'to': 'robot@127.0.0.1:6566'}] ]
 
         go_node(Node) >> [
-            show_line("[ROBOT COMMUNICATION] : sending go node request to node ", Node), 
+            show_line("[ACKERMANN COMMUNICATION] : sending go node request to node ", Node), 
             +go_to_node(Node)[{'to': 'robot@127.0.0.1:6566'}] 
         ]
         
         +targetReached()[{'from': _A}] >> [ show_line("Target reached") ]
           
         go_to_start() / robotNode(robot) >> [
-            show_line("[ROBOT] : Returning to START point"),
+            show_line("[ACKERMANN] : Returning to START point"),
             path(robot,"START",[]),
             "N = 1",
             +targetReached(robot),
@@ -129,13 +129,13 @@ class main(Agent):
         ]
 
         follow_path(currentTarget) / (selected_path(P, pathLength, N) & eq(pathLength, N)) >> [ 
-            show_line("[ROBOT] : target reached"),
+            show_line("[ACKERMANN] : target reached"),
             "N = 1"
         ]
 
-        follow_path(currentTarget) / (targetReached(Node) & selected_path(P,pathLength,N) ) >> [ 
+        follow_path(currentTarget) / (targetReached(Node) & selected_path(P, pathLength, N)) >> [ 
             "currentTarget = P[N]",
-            "N = N+1",
+            "N = N + 1",
             +selected_path(P, pathLength, N),
             +targetIntermediateNode(currentTarget),
             -targetReached(Node),
@@ -156,7 +156,7 @@ class main(Agent):
             +selected(P, Total)
         ]
 
-        path(P, Total, Node,  Dest) / (edge(Node, Dest, Cost) & nodeNotInPath(P, Dest))  >> \
+        path(P, Total, Node,  Dest) / (edge(Node, Dest, Cost) & nodeNotInPath(P, Dest)) >> \
         [
             "P = P.copy()",
             "P.append(Node)",
@@ -164,12 +164,17 @@ class main(Agent):
             select_min(P, Total, Dest, Dest)
         ]
 
-        path(P, Total, Src,  Dest)['all'] / (edge(Src, Next, Cost) & nodeNotInPath(P, Next))  >> \
+        path(P, Total, Src,  Dest)['all'] / (edge(Src, Next, Cost) & nodeNotInPath(P, Next)) >> \
         [
             "P = P.copy()",
             "P.append(Src)",
             "Total = Total + Cost",
             select_min(P, Total, Next, Dest)
+        ]
+
+        select_min(P, Total, Next, Dest) / (selected(CurrentMin, CurrentMinCost) & gt(Total, CurrentMinCost)) >> \
+        [
+          #show_line("[ACKERMANN] : path cut")
         ]
 
         select_min(P, Total, Next, Dest) >> \
@@ -179,7 +184,7 @@ class main(Agent):
 
         show_min(P) / selected(CurrentMin, CurrentMinCost) >> \
         [
-            show_line("[ROBOT] : Minimum Cost Path ", CurrentMin, ", cost ", CurrentMinCost),
+            show_line("[ACKERMANN] : Minimum Cost Path ", CurrentMin, ", cost ", CurrentMinCost),
             "pathLength = len(CurrentMin)",
             +selected_path(CurrentMin, pathLength, 1),
             -selected(CurrentMin,CurrentMinCost),
@@ -187,7 +192,7 @@ class main(Agent):
         
         +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & targetNode(Node) & heldBlock(X, C) & towerColor(Node, C, N) ) >> \
         [
-            show_line('[ROBOT] : Reached Tower ', Node),
+            show_line('[ACKERMANN] : Reached Tower ', Node),
             +targetReached(Node),
             +robotNode(Node),
             +not_navigating("1"),
@@ -205,7 +210,7 @@ class main(Agent):
 
         +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & targetNode(Node)) >> \
         [
-            show_line('[ROBOT] : Reached Node ', Node),
+            show_line('[ACKERMANN] : Reached Node ', Node),
             +targetReached(Node),
             +robotNode(Node),
             sense()
@@ -213,21 +218,21 @@ class main(Agent):
 
         +target_got()[{'from': _A}] / (targetIntermediateNode(X)) >> \
         [
-            show_line('[ROBOT] : Reached intermediate Node ', X),
+            show_line('[ACKERMANN] : Reached intermediate Node ', X),
             +targetReached(X),
             +robotNode(X),
             sense()
         ]
 
-        closeRobotNode(Node, D) << (robotNode(Node) & lt(D, 0.5) & slotNotChecked(Node))
+        closeRobotNode(Node, D) << (robotNode(Node) & lt(D, 0.1) & slotNotChecked(Node))
 
         +distance(D)[{'from':_A}] / closeRobotNode(Node, D) >> [ 
-            show_line("[ROBOT] : Block found in slot ", Node),
+            show_line("[ACKERMANN] : Block found in slot ", Node),
             +block(Node)
         ]
 
         +distance(D)[{'from':_A}] / (targetIntermediateNode(Node) & targetNode(Node)) >> [ 
-            show_line("[ROBOT COMMUNICATION] : Received ", D, " from ROBOT"),
+            show_line("[ACKERMANN COMMUNICATION] : Received ", D, " from ROBOT"),
             +not_navigating("1"),
             -slotNotChecked(Node), 
             resolve()
@@ -240,7 +245,7 @@ class main(Agent):
         ]
 
         +color(C)[{'from':_A}] / (block(X) & towerColor(Node, C, N) & geq(N, 3)) >> [ 
-            show_line("[ROBOT] : Tower ", C, " full, cannot pick block sampled in slot ", X),
+            show_line("[ACKERMANN] : Tower ", C, " full, cannot pick block sampled in slot ", X),
             -block(X),
             -slotNotChecked(X),
             +not_navigating("1"),
@@ -248,7 +253,7 @@ class main(Agent):
         ]
 
         +color(C)[{'from':_A}] / (block(X) & towerColor(Node, C, N) & lt(N, 4)) >> [ 
-            show_line("[ROBOT] : Color ", C, " sampled in slot ", X),
+            show_line("[ACKERMANN] : Color ", C, " sampled in slot ", X),
             -block(X),
             +heldBlock(X, C),
             -slotNotChecked(X),
@@ -272,7 +277,7 @@ class main(Agent):
         resolve() / heldBlock(X, C) >> [ ]
 
         resolve() >> [
-            show_line("[ROBOT]: Scanning has completed"),
+            show_line("[ACKERMANN]: Scanning has completed"),
             go_to_start()
         ]
 
@@ -296,15 +301,15 @@ class main(Agent):
         ]
 
         generate() >> [ 
-            show_line("[ROBOT COMMUNICATION] : richiesta generazione 9 blocchi"),
+            show_line("[ACKERMANN COMMUNICATION] : richiesta generazione 9 blocchi"),
             +generate_blocks(9)[{'to': 'robot@127.0.0.1:6566'}] ,
             restoreSlots()
         ]
 
-        generate(N) / gt(N, 9) >> [ show_line("[ROBOT] : cannot generate more than 9 blocks") ]
+        generate(N) / gt(N, 9) >> [ show_line("[ACKERMANN] : cannot generate more than 9 blocks") ]
         
         generate(N) >> [
-            show_line("[ROBOT COMMUNICATION] : richiesta generazione ", N," blocchi"), 
+            show_line("[ACKERMANN COMMUNICATION] : richiesta generazione ", N," blocchi"), 
             +generate_blocks(N)[{'to': 'robot@127.0.0.1:6566'}], 
             restoreSlots()
         ]

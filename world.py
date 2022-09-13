@@ -51,11 +51,24 @@ class Tower:
     def getMPos(self):
         return (self.x_M_pos, self.y_M_pos)
 
+
+class Obstacle:
+    def __init__(self, x_P_pos, y_P_pos, x_M_pos, y_M_pos):
+        self.x_P_pos = x_P_pos
+        self.y_P_pos = y_P_pos
+        self.x_M_pos = x_M_pos
+        self.y_M_pos = y_M_pos
+
+    def getPPos(self):
+        return (self.x_P_pos, self.x_M_pos)
+
+
 class World:
     def __init__(self):
         seed(1)
         self.nodes = readNodesFile('nodes.txt')
         self.edges = readLinksFile('links.txt')
+        self.obstacles = readObstaclesFile('obstacles.txt')
 
         self.blocks = []
         self.generated_blocks = False

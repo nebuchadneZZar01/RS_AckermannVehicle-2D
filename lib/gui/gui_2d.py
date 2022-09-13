@@ -1,3 +1,4 @@
+from email import utils
 import sys
 import math
 import pathlib
@@ -23,7 +24,6 @@ BCOL = {
 colors = ['red', 'green', 'blue']
 
 class CartWindow(QWidget):
-
     def __init__(self, _compound_sys, _world, _img = 'mobile_robot_2d.png'):
         super(CartWindow, self).__init__()
         self.compound_system = _compound_sys
@@ -31,6 +31,8 @@ class CartWindow(QWidget):
         self.image = _img
         self.initUI()
         self.setMouseTracking(True)
+
+        self.path = QtGui.QPainterPath()
 
     def initUI(self):
         self.setGeometry(0, 0, W, H)
@@ -92,11 +94,16 @@ class CartWindow(QWidget):
 
         drawGraph(qp, self.world)
 
+        drawStartArrow(qp)
+
         s = self.robot_pic.size()
 
         if self.world.generated_blocks == True:
             for block in self.world.blocks:
                 drawBlock(qp, block.x_P_pos, block.y_P_pos, block.color)
+
+        for obstacle in self.world.obstacles:
+            drawObstacle(qp, obstacle[0], obstacle[1])
 
         if self.compound_system.held_block:
             if self.compound_system.held_block.getColor() == 'red': self.robot_pic = QtGui.QPixmap(self.red_image)
@@ -119,6 +126,8 @@ class CartWindow(QWidget):
         x_pos = int(30 + x*1130 - s.width() / 2)
         y_pos = int(600 - y*1130 - s.height() / 2)
 
+        self.drawPoints(qp, x_pos, y_pos)
+
         t = QtGui.QTransform()
         t.translate(x_pos + s.width()/2, y_pos + s.height()/2)
         t.rotate(-math.degrees(theta))
@@ -128,6 +137,15 @@ class CartWindow(QWidget):
         qp.drawPixmap(x_pos,y_pos,self.robot_pic)
 
         qp.end()
+
+    def mousePressEvent(self, a0: QtGui.QMouseEvent):
+        print('Mouse pressed:', a0.x(), a0.y())
+
+    def drawPoints(self, qp, x, y):
+        qp.setPen(QtGui.QColor(255,0,0))
+        qp.setBrush(QtGui.QColor(0,0,0,0))
+        self.path.lineTo(x, y)
+        qp.drawPath(self.path)
     
 
 def drawGraph(qp, world):
@@ -136,12 +154,15 @@ def drawGraph(qp, world):
     nodes = world.nodes 
 
     for node in nodes:
-        if node[0] == 'START': qp.setBrush(BCOL['brown'])
-        elif node[0] == 'Tr': qp.setBrush(BCOL['red'])
-        elif node[0] == 'Tg': qp.setBrush(BCOL['green'])
-        elif node[0] == 'Tb': qp.setBrush(BCOL['blue'])
-        else: qp.setBrush(BCOL['gray'])
-        qp.drawEllipse(node[1], node[2], R, R)
+        if node[0] == 'START': 
+            qp.setBrush(BCOL['brown'])
+            qp.drawEllipse(node[1], node[2], R, R)
+        elif node[0] == 'Tr': drawTower(qp,node[1],node[2],0)
+        elif node[0] == 'Tg': drawTower(qp,node[1],node[2],1)
+        elif node[0] == 'Tb': drawTower(qp,node[1],node[2],2)
+        else: 
+            qp.setBrush(BCOL['gray'])
+            qp.drawEllipse(node[1], node[2], R, R)
 
 
 def drawBlock(qp, x_pos, y_pos, color):
@@ -150,9 +171,31 @@ def drawBlock(qp, x_pos, y_pos, color):
     qp.drawRect(x_pos, y_pos, L, L)
 
 
-def paintCommand(qp, command):
-    qp.drawText(500, 665, "COMMAND: " + command)
+def drawObstacle(qp, x_pos, y_pos):
+    qp.setPen(QtGui.QColor(0,0,0))
+    qp.setBrush(QtGui.QColor(0,0,0))
+    qp.drawRect(x_pos, y_pos, 20, 20)
 
+
+def drawTower(qp, x_pos, y_pos, color):
+    qp.setPen(BCOL[colors[color]])
+    qp.setBrush(QtGui.QColor(0,0,0,0))
+    qp.drawRect(x_pos-int(L/2), y_pos-int(L/2), 30, 30)
+
+
+def paintCommand(qp, command):
+    qp.drawText(450, 665, "COMMAND: " + command)
+
+
+def drawStartArrow(qp):
+    qp.setPen(QtCore.Qt.NoPen)
+    qp.setBrush(QtGui.QColor(BCOL['brown']))
+    qp.drawRect(10,590,60,20)
+    points = [QtCore.QPoint(70,570), QtCore.QPoint(70,630), QtCore.QPoint(100,600)]
+
+    triangle = QtGui.QPolygon(points)
+
+    qp.drawPolygon(triangle)
 
 def main():
     app = QtGui.QApplication(sys.argv)

@@ -29,6 +29,18 @@ def readLinksFile(links_file):
     
     return links
 
+def readObstaclesFile(obstacles_file):
+    with open(obstacles_file, 'r') as f:
+        obstacles = []
+        for line in f.readlines()[1::]:
+            l = line.rstrip().split(',')
+            l[0] = int(l[0])
+            l[1] = int(l[1])
+            l = tuple(l)
+            obstacles.append(l)
+    
+    return obstacles
+
 def readGraphFiles(nodes_file, links_file):
     nodes = readNodesFile(nodes_file)
     links = readLinksFile(links_file)
