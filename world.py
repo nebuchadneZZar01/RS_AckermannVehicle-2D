@@ -85,20 +85,25 @@ class World:
                 if node[0][1] == 'b': self.blue_tower = Tower(node[1],node[2],x_M,y_M,2)
 
 
-    def generateBlocks(self):
+    def generateBlocks(self, n_blocks):
         self.blocks.clear()
 
-        for n in self.nodes:
-            if n[3] == True: 
-                c = randint(0,2)
-                in_n = n[0]
-                (x_M, y_M) = pixel2meter(n[1],n[2],10,10,(70,40))
-                block = Block(in_n,n[1],n[2],x_M,y_M,c)
-                self.blocks.append(block)
+        choosen_blocks = []
 
-                if self.generated_blocks == False:
-                    self.generated_blocks = True
+        while len(choosen_blocks) < n_blocks:
+            row = randint(0,len(self.nodes)-1)
+            if row not in choosen_blocks:
+                if self.nodes[row][3] == True:
+                    choosen_blocks.append(row)
+                    c = randint(0,2)
+                    in_n = self.nodes[row][0]
+                    (x_M, y_M) = pixel2meter(self.nodes[row][1],self.nodes[row][2],10,10,(70,40))
+                    block = Block(in_n,self.nodes[row][1],self.nodes[row][2],x_M,y_M,c)
+                    self.blocks.append(block)
 
+                    if self.generated_blocks == False:
+                        self.generated_blocks = True
+        
         print("[WORLD] : There are " + str(len(self.blocks)) + " blocks")
 
     def closestBlockDistance(self, robot):

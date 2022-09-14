@@ -69,6 +69,8 @@ class remove_towers_blocks(Procedure): pass
 # --- COMMUNICATION ---
 
 # Procedures that talk to GUI server
+class show_path(Procedure): pass
+class show_plot(Procedure): pass
 class send_heldBlock(Procedure) : pass
 class send_releaseBlock(Procedure) : pass
 class sense(Procedure) : pass
@@ -78,6 +80,8 @@ class go(Procedure) : pass
 class reset_towers(Procedure): pass
 
 # Server beliefs
+class draw_path(Belief): pass
+class plot_vars(Belief): pass
 class go_to_node(Belief): pass
 class go_to(Belief): pass
 class send_held_block(Belief): pass
@@ -97,6 +101,10 @@ def_vars('Src', 'Dest', 'Next', 'Cost', 'P', 'Total', 'CurrentMin', 'CurrentMinC
 
 class main(Agent):
     def main(self):
+        show_path() >> [ +draw_path()[{'to': 'robot@127.0.0.1:6566'}]]
+
+        show_plot() >> [ +plot_vars()[{'to': 'robot@127.0.0.1:6566'}]]
+
         go(X, Z) >> [ +go_to(X, Z)[{'to': 'robot@127.0.0.1:6566'}] ]
 
         go_node(Node) >> [
@@ -144,54 +152,44 @@ class main(Agent):
 
         follow_path(currentTarget) >> []
 
-        path(Src, Dest, P) >> \
-        [
+        path(Src, Dest, P) >> [
             path(P, 0, Src, Dest),
             show_min(P)
         ]
 
-        path(P, Total, Dest, Dest) >> \
-        [ 
+        path(P, Total, Dest, Dest) >> [ 
             "P.append(Dest)", 
             +selected(P, Total)
         ]
 
-        path(P, Total, Node,  Dest) / (edge(Node, Dest, Cost) & nodeNotInPath(P, Dest)) >> \
-        [
+        path(P, Total, Node,  Dest) / (edge(Node, Dest, Cost) & nodeNotInPath(P, Dest)) >> [
             "P = P.copy()",
             "P.append(Node)",
             "Total = Total + Cost",
             select_min(P, Total, Dest, Dest)
         ]
 
-        path(P, Total, Src,  Dest)['all'] / (edge(Src, Next, Cost) & nodeNotInPath(P, Next)) >> \
-        [
+        path(P, Total, Src,  Dest)['all'] / (edge(Src, Next, Cost) & nodeNotInPath(P, Next)) >> [
             "P = P.copy()",
             "P.append(Src)",
             "Total = Total + Cost",
             select_min(P, Total, Next, Dest)
         ]
 
-        select_min(P, Total, Next, Dest) / (selected(CurrentMin, CurrentMinCost) & gt(Total, CurrentMinCost)) >> \
-        [
-          #show_line("[ACKERMANN] : path cut")
-        ]
+        select_min(P, Total, Next, Dest) / (selected(CurrentMin, CurrentMinCost) & gt(Total, CurrentMinCost)) >> [ ]
 
-        select_min(P, Total, Next, Dest) >> \
-        [
+        select_min(P, Total, Next, Dest) >> [
             path(P, Total, Next, Dest)
         ]
 
-        show_min(P) / selected(CurrentMin, CurrentMinCost) >> \
-        [
+        show_min(P) / selected(CurrentMin, CurrentMinCost) >> [
             show_line("[ACKERMANN] : Minimum Cost Path ", CurrentMin, ", cost ", CurrentMinCost),
             "pathLength = len(CurrentMin)",
             +selected_path(CurrentMin, pathLength, 1),
             -selected(CurrentMin,CurrentMinCost),
         ]
         
-        +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & targetNode(Node) & heldBlock(X, C) & towerColor(Node, C, N) ) >> \
-        [
+        +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & targetNode(Node) & heldBlock(X, C) & towerColor(Node, C, N) ) >> [
             show_line('[ACKERMANN] : Reached Tower ', Node),
             +targetReached(Node),
             +robotNode(Node),
@@ -201,23 +199,20 @@ class main(Agent):
             resolve()
         ]
 
-        +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & eq(Node, "START")) >> \
-        [
+        +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & eq(Node, "START")) >> [
             +targetReached(Node),
             +robotNode(Node),
             restoreSlots()
         ]
 
-        +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & targetNode(Node)) >> \
-        [
+        +target_got()[{'from': _A}] / (targetIntermediateNode(Node) & targetNode(Node)) >> [
             show_line('[ACKERMANN] : Reached Node ', Node),
             +targetReached(Node),
             +robotNode(Node),
             sense()
         ]
 
-        +target_got()[{'from': _A}] / (targetIntermediateNode(X)) >> \
-        [
+        +target_got()[{'from': _A}] / (targetIntermediateNode(X)) >> [
             show_line('[ACKERMANN] : Reached intermediate Node ', X),
             +targetReached(X),
             +robotNode(X),
@@ -301,7 +296,7 @@ class main(Agent):
         ]
 
         generate() >> [ 
-            show_line("[ACKERMANN COMMUNICATION] : richiesta generazione 9 blocchi"),
+            show_line("[ACKERMANN COMMUNICATION] : request generation 9 blocks"),
             +generate_blocks(9)[{'to': 'robot@127.0.0.1:6566'}] ,
             restoreSlots()
         ]
@@ -309,7 +304,7 @@ class main(Agent):
         generate(N) / gt(N, 9) >> [ show_line("[ACKERMANN] : cannot generate more than 9 blocks") ]
         
         generate(N) >> [
-            show_line("[ACKERMANN COMMUNICATION] : richiesta generazione ", N," blocchi"), 
+            show_line("[ACKERMANN COMMUNICATION] : request generation ", N," blocks"), 
             +generate_blocks(N)[{'to': 'robot@127.0.0.1:6566'}], 
             restoreSlots()
         ]

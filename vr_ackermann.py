@@ -1,3 +1,4 @@
+from multiprocessing.connection import wait
 import sys
 sys.path.insert(0, 'lib')
 
@@ -24,10 +25,10 @@ class AckermannRobot(RoboticSystem):
         # radius = 2 cm
         # lateral distance = 15 cm
         self.car = AckermannSteering(10, 0.8, 0.02, 0.15)
-        self.speed_controller = PIDSat(8.0, 2.0, 0, 5, True)
-        self.polar_controller = Polar2DController(2.0, 1.5, 40.0, math.pi/3)
+        self.speed_controller = PIDSat(8.0, 4.0, 0, 5, True)
+        self.polar_controller = Polar2DController(2.0, 1.5, 10.0, math.pi/3)
 
-        self.path_controller = Path2D(1.5, 2, 2, 0.02)
+        self.path_controller = Path2D(1.5, 2, 2, 0.04)
         self.path_controller.set_path([(0.0, 0.0)])
         
         (x, y, _) = self.get_pose()
@@ -36,6 +37,8 @@ class AckermannRobot(RoboticSystem):
         self.target_reached = False
 
         self.received_path = []
+        self.draw_path = False
+        self.plot_vars = False
 
         self.world = World()
 
@@ -62,13 +65,14 @@ class AckermannRobot(RoboticSystem):
             torque = self.speed_controller.evaluate(self.delta_t, vref, v)
 
             self.car.evaluate(self.delta_t, torque, steering)
-            #self.get_plot(target, vref, steering)
+            self.register_plot(target, vref, steering)
         else:
             if not(self.target_reached):
                 self.target_reached = True
                 if self.phidias_agent != '':
                     print("[ACKERMANN] : Target reached")
                     Messaging.send_belief(self.phidias_agent, 'target_got', [], 'robot')
+                    if self.plot_vars is True: self.show_plot()
 
         return True
 
@@ -92,10 +96,36 @@ class AckermannRobot(RoboticSystem):
             self.path_controller.start((x,y))
             self.target_reached = False
 
-            self.current_cmd = 'Going to node ' + terms[0]
+            if terms[0][0] == 'T':
+                if terms[0][1] == 'r':  self.current_cmd = 'Going to Red Tower'
+                elif terms[0][1] == 'g':  self.current_cmd = 'Going to Green Tower'
+                elif terms[0][1] == 'b':  self.current_cmd = 'Going to Blue Tower'
+            else:
+                self.current_cmd = 'Going to node ' + terms[0]
+
+        if name == 'draw_path':
+            self.draw_path = not(self.draw_path)
+            if self.draw_path is True: 
+                print('[ACKERMANN] : Path will be drawned')
+                self.current_cmd = 'Path drawing function enabled'
+            else:
+                print('[ACKERMANN] : Path will not be drawned')
+                self.current_cmd = 'Path drawing function disabled'
+
+        if name == 'plot_vars':
+            self.plot_vars = not(self.plot_vars)
+            if self.plot_vars is True: 
+                print('[ACKERMANN] : Variables will be plotted')
+                self.current_cmd = 'Variables plotting function enabled'
+            else:
+                print('[ACKERMANN] : Variables will not be plotted')
+                self.current_cmd = 'Variables plotting function disabled'
 
         if name == 'generate_blocks':
-            self.world.generateBlocks()
+            if len(terms) == 0:
+                self.world.generateBlocks()
+            else:
+                self.world.generateBlocks(terms[0])
             self.current_cmd = 'The blocks have been detected'
 
         if name == 'sense_distance':
@@ -108,17 +138,15 @@ class AckermannRobot(RoboticSystem):
             for block in self.world.blocks:
                 if block.in_node == terms[0]:
                     self.take_block(block)
-                    self.current_cmd = 'Take block'
 
         if name == 'releaseBlockToTower':
             self.release_block()
-            self.current_cmd = 'Release block in tower'
+
 
     def get_current_cmd(self):
         return self.current_cmd
-            
 
-    def get_plot(self, target, vref, steering):
+    def register_plot(self, target, vref, steering):
         (x, y, _) = self.get_pose()
         (x_target, y_target) = target
         (v, w) = self.get_speed()
@@ -134,14 +162,13 @@ class AckermannRobot(RoboticSystem):
         self.plotter.add('vref', vref)
         self.plotter.add('steering', steering)
 
-        if self.t > 40:
-            self.plotter.plot(['t', 'time'], [['vref', 'VRef'], ['v', 'V']])
-            self.plotter.plot(['t', 'time'], [['steering', 'Steering'], ['w', 'W']])
-            self.plotter.plot(['t', 'time'], [['x_target', 'X Target'], ['x', 'X']])
-            self.plotter.plot(['t', 'time'], [['y_target', 'Y Target'], ['y', 'Y']])
-            self.plotter.show()
-            return False
-
+    def show_plot(self):
+        self.plotter.plot(['t', 'time'], [['vref', 'VRef'], ['v', 'V']])
+        self.plotter.plot(['t', 'time'], [['steering', 'Steering'], ['w', 'W']])
+        self.plotter.plot(['t', 'time'], [['x_target', 'X Target'], ['x', 'X']])
+        self.plotter.plot(['t', 'time'], [['y_target', 'Y Target'], ['y', 'Y']])
+        self.plotter.show()
+  
     def calculate_distance(self):
         print("[ACKERMANN] : Calculating distance from nearest block")
         dist = self.world.closestBlockDistance(self.get_pose())

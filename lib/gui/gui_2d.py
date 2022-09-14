@@ -86,11 +86,19 @@ class CartWindow(QWidget):
         qp.drawText(1150, 180, "Green = " + str(self.world.getBlocksNumberByColor(1)))
         qp.drawText(1150, 200, "Blue = " + str(self.world.getBlocksNumberByColor(2)))
         qp.drawText(1150, 240, "Blocks in Towers:")
-        qp.drawText(1150, 260, "Red = " + str(self.world.red_tower.n_blocks))
-        qp.drawText(1150, 280, "Green = " + str(self.world.green_tower.n_blocks))
-        qp.drawText(1150, 300, "Blue = " + str(self.world.blue_tower.n_blocks))
+        qp.drawText(1150, 260, "Red = " + str(self.world.red_tower.n_blocks) + "/3")
+        qp.drawText(1150, 280, "Green = " + str(self.world.green_tower.n_blocks) + "/3")
+        qp.drawText(1150, 300, "Blue = " + str(self.world.blue_tower.n_blocks) + "/3")
+        qp.drawText(1150, 340, "Legend:")
+        qp.drawText(1160, 360, " = Graph Node")
+        qp.drawText(1160, 380, " = Block")
+        qp.drawText(1160, 400, " = Tower")
+        qp.drawText(1160, 420, " = Obstacle")
+        qp.drawText(1180, 449, " = Start point")
 
         paintCommand(qp, self.compound_system.get_current_cmd())
+
+        self.drawLegend(qp)
 
         drawGraph(qp, self.world)
 
@@ -126,7 +134,8 @@ class CartWindow(QWidget):
         x_pos = int(30 + x*1130 - s.width() / 2)
         y_pos = int(600 - y*1130 - s.height() / 2)
 
-        self.drawPoints(qp, x_pos, y_pos)
+        if self.compound_system.draw_path: 
+            self.drawPoints(qp, x_pos, y_pos)
 
         t = QtGui.QTransform()
         t.translate(x_pos + s.width()/2, y_pos + s.height()/2)
@@ -146,6 +155,37 @@ class CartWindow(QWidget):
         qp.setBrush(QtGui.QColor(0,0,0,0))
         self.path.lineTo(x, y)
         qp.drawPath(self.path)
+
+    def drawLegend(self, qp):
+        # NODE
+        qp.setPen(QtCore.Qt.NoPen)
+        qp.setBrush(BCOL['gray'])
+        qp.drawEllipse(1150, 350, R, R)
+
+        # TOWER
+        qp.setPen(QtGui.QColor(0,0,0))
+        qp.setBrush(QtGui.QColor(255,0,0))
+        qp.drawRect(1150, 370, 10, 10)
+
+        # TOWER
+        qp.setPen(QtGui.QColor(255,0,0))
+        qp.setBrush(QtGui.QColor(0,0,0,0))
+        qp.drawRect(1150, 390, 10, 10)
+
+        # OBSTACLE
+        qp.setPen(QtGui.QColor(0,0,0))
+        qp.setBrush(QtGui.QColor(0,0,0))
+        qp.drawRect(1150, 410, 10, 10)
+
+        # START
+        qp.setPen(QtCore.Qt.NoPen)
+        qp.setBrush(BCOL['brown'])
+        qp.drawRect(1150, 440, 10, 10)
+        points = [QtCore.QPoint(1160,430), QtCore.QPoint(1160,460), QtCore.QPoint(1180,445)]
+
+        triangle = QtGui.QPolygon(points)
+
+        qp.drawPolygon(triangle) 
     
 
 def drawGraph(qp, world):
