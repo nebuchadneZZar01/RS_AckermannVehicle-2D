@@ -6,11 +6,11 @@ C,600,560,True
 D,1000,560,True
 E,210,340,True
 F,500,300,True
-G,760,370,True
+G,790,385,True
 H,1060,410,False
 I,70,170,True
-J,730,80,True
-K,930,200,True
+J,730,90,True
+K,1000,175,True
 Tr,420,70,False
 Tg,1075,60,False
 Tb,720,250,False

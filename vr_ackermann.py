@@ -26,9 +26,9 @@ class AckermannRobot(RoboticSystem):
         # lateral distance = 15 cm
         self.car = AckermannSteering(10, 0.8, 0.02, 0.15)
         self.speed_controller = PIDSat(8.0, 4.0, 0, 5, True)
-        self.polar_controller = Polar2DController(2.0, 1.5, 10.0, math.pi/3)
+        self.polar_controller = Polar2DController(2.0, 1.5, 40.0, math.pi/3)
 
-        self.path_controller = Path2D(1.5, 2, 2, 0.04)
+        self.path_controller = Path2D(1.5, 2, 2, 0.02)
         self.path_controller.set_path([(0.0, 0.0)])
         
         (x, y, _) = self.get_pose()
