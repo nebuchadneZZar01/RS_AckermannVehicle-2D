@@ -227,7 +227,7 @@ class main(Agent):
         ]
 
         +distance(D)[{'from':_A}] / (targetIntermediateNode(Node) & targetNode(Node)) >> [ 
-            show_line("[ACKERMANN COMMUNICATION] : Received ", D, " from ROBOT"),
+            show_line("[ACKERMANN COMMUNICATION] : Received ", D, " from ACKERMANN"),
             +not_navigating("1"),
             -slotNotChecked(Node), 
             resolve()

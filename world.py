@@ -1,20 +1,18 @@
-from dis import dis
 from utils import *
 from random import seed
 from random import randint
-import math
 
-INF = 99999999
+INF = 99999999      # infinite distance
 
 class Block:
     def __init__(self, in_node, x_P_pos, y_P_pos, x_M_pos, y_M_pos, color):
-        self.in_node = in_node
-        self.x_P_pos = x_P_pos
-        self.y_P_pos = y_P_pos
-        self.x_M_pos = x_M_pos
-        self.y_M_pos = y_M_pos
-        self.color = color
-        self.held = False
+        self.in_node = in_node          # specifies in which node the block is located
+        self.x_P_pos = x_P_pos          # x pixel position
+        self.y_P_pos = y_P_pos          # y pixel position
+        self.x_M_pos = x_M_pos          # x meter position
+        self.y_M_pos = y_M_pos          # y meter position
+        self.color = color              # color of the block
+        self.held = False               # specifies if the block is held by the robot
 
     def setHeld(self):
         if self.held == False:
@@ -31,14 +29,15 @@ class Block:
         elif self.color == 1: return 'green'
         elif self.color == 2: return 'blue'
 
+
 class Tower:
     def __init__(self, x_P_pos, y_P_pos, x_M_pos, y_M_pos, color):
-        self.x_P_pos = x_P_pos
-        self.y_P_pos = y_P_pos
-        self.x_M_pos = x_M_pos
-        self.y_M_pos = y_M_pos
-        self.color = color
-        self.n_blocks = 0
+        self.x_P_pos = x_P_pos          # x pixel position
+        self.y_P_pos = y_P_pos          # y pixel position
+        self.x_M_pos = x_M_pos          # x meter position
+        self.y_M_pos = y_M_pos          # y meter position
+        self.color = color              # color of the tower
+        self.n_blocks = 0               # num of blocks in the tower
 
     def addBlock(self):
         self.n_blocks += 1
@@ -54,15 +53,17 @@ class Tower:
 
 class Obstacle:
     def __init__(self, x_P_pos, y_P_pos, x_M_pos, y_M_pos):
-        self.x_P_pos = x_P_pos
-        self.y_P_pos = y_P_pos
-        self.x_M_pos = x_M_pos
-        self.y_M_pos = y_M_pos
+        self.x_P_pos = x_P_pos          # x pixel position
+        self.y_P_pos = y_P_pos          # y pixel position
+        self.x_M_pos = x_M_pos          # x meter position
+        self.y_M_pos = y_M_pos          # y meter position
 
     def getPPos(self):
         return (self.x_P_pos, self.x_M_pos)
 
 
+# World in which the robot is located, and which contains
+# blocks to gather and obstacles to avoid
 class World:
     def __init__(self):
         seed(1)
@@ -78,13 +79,14 @@ class World:
         self.blue_tower = None
 
         for node in self.nodes:
-            (x_M, y_M) = pixel2meter(node[1],node[2],10,10,(70,40))
+            (x_M, y_M) = pixel2meter(node[1],node[2],30,600,1130)
             if len(node[0]) == 2:
                 if node[0][1] == 'r': self.red_tower = Tower(node[1],node[2],x_M,y_M,0)
                 if node[0][1] == 'g': self.green_tower = Tower(node[1],node[2],x_M,y_M,1)
                 if node[0][1] == 'b': self.blue_tower = Tower(node[1],node[2],x_M,y_M,2)
 
-
+    # generates, in random positions (from the ones choosed) 
+    # and in random colors, n_blocks blocks
     def generateBlocks(self, n_blocks):
         self.blocks.clear()
 
@@ -97,7 +99,7 @@ class World:
                     choosen_blocks.append(row)
                     c = randint(0,2)
                     in_n = self.nodes[row][0]
-                    (x_M, y_M) = pixel2meter(self.nodes[row][1],self.nodes[row][2],10,10,(70,40))
+                    (x_M, y_M) = pixel2meter(self.nodes[row][1],self.nodes[row][2],30,600,1130)
                     block = Block(in_n,self.nodes[row][1],self.nodes[row][2],x_M,y_M,c)
                     self.blocks.append(block)
 
@@ -106,6 +108,7 @@ class World:
         
         print("[WORLD] : There are " + str(len(self.blocks)) + " blocks")
 
+    # calculates distance between the robot and the closest block
     def closestBlockDistance(self, robot):
         min_dist = INF
         for block in self.blocks:
@@ -116,6 +119,7 @@ class World:
 
         return min_dist
 
+    # detects closest block color
     def closestBlockColor(self, robot):
         col = None
         min_dist = INF
@@ -129,13 +133,15 @@ class World:
 
         return col
 
+    # returns the number of blocks of a certain color
     def getBlocksNumberByColor(self, color):
         count = 0
         for b in self.blocks:
             if b.color == color: count += 1
 
         return count
-
+    
+    # returns the total number of blocks
     def getBlocksNumber(self):
         return len(self.blocks)
 
