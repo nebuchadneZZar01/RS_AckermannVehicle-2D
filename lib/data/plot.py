@@ -1,11 +1,6 @@
-#
-# plot.py
-#
-
 import pylab
 
 class DataPlotter:
-
     def __init__(self):
         self.data = { }
         self.__options =  [ 'r-', 'b-', 'g-' ]

@@ -1,9 +1,4 @@
-#
-# robot.py
-#
-
 class RoboticSystem:
-
     def __init__(self, delta_t):
         self.delta_t = delta_t
         self.t = 0

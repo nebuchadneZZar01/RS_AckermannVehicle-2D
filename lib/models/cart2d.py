@@ -1,13 +1,7 @@
-#
-# cart2d.py
-#
-
 import math
-
 from data.geometry import *
 
 class AckermannSteering:
-
     def __init__(self, _mass, _lin_friction, _r_traction, _lateral_wheelbase):
         self.M = _mass
         self.b = _lin_friction
@@ -44,4 +38,3 @@ class AckermannSteering:
 
     def get_speed(self):
         return (self.v, self.w)
-

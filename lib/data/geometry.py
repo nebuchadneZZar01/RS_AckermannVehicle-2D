@@ -1,7 +1,3 @@
-#
-# geometry.py
-#
-
 import math
 
 def normalize_angle(a):

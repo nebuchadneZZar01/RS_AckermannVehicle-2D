@@ -1,11 +1,6 @@
-#
-#
-#
-
 import json
 import sys
 import threading
-
 
 ### "http" protocol
 
@@ -16,7 +11,6 @@ from io import BytesIO
 import requests
 
 class PhidiasHTTPServer_RequestHandler(BaseHTTPRequestHandler):
-
     consumer = None
     port = 0
 
@@ -31,9 +25,6 @@ class PhidiasHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         payload = json.loads(body.decode())
-        # payload = { 'from' : source,
-        #             'to': agent_name,
-        #             'data' : ['belief', [ belief.name(), belief.string_terms() ] ] }
         response = process_incoming_request(PhidiasHTTPServer_RequestHandler.consumer, self.client_address[0], payload)
 
         body = json.dumps(response)
@@ -59,7 +50,6 @@ def send_belief_http(agent_name, destination, belief, terms, source):
                 'data' : ['belief', [ belief, terms ] ] }
 
     json_payload = json.dumps(payload)
-    #print(json_payload)
     new_url = "http://" + parsed_url.hostname + ":" + str(port)
     r = requests.post(new_url, data=json_payload)
     reply = json.loads(r.text)
@@ -75,7 +65,6 @@ def server_thread_http(consumer, port):
     print("\tPHIDIAS Messaging Server is running at port ", port)
     print("")
     print("")
-    #print(httpd.socket)
     httpd.serve_forever()
     server_thread()
 
@@ -112,24 +101,8 @@ def process_incoming_request(consumer, from_address, payload):
                     if _to == 'robot':
                         if _data[0] == 'belief':
                             [ Name, Terms ] = _data[1]
-                            #Terms = eval('"' + Terms + '"')
-                            #print(_from, _to, Name, Terms)
-                            #
                             # interpret belief name and call the relevant method
-                            #
                             consumer.on_belief(_from, Name, Terms)
-                            # if Name == 'go_to':
-                            #     ui.set_from(_from)
-                            #     ui.go_to(*Terms)
-                            # elif Name == 'new_block':
-                            #     ui.set_from(_from)
-                            #     ui.generate_new_block()
-                            # elif Name == 'sense_distance':
-                            #     ui.set_from(_from)
-                            #     ui.sense_distance()
-                            # elif Name == 'sense_color':
-                            #     ui.set_from(_from)
-                            #     ui.sense_color()
                             response = { 'result' : 'ok' }
                         else:
                             response = { 'result' : 'err',
@@ -161,4 +134,3 @@ class Messaging:
     def send_belief(cls, destination, belief, terms, source):
         (agent_name, destination) = Messaging.parse_destination(destination)
         send_belief_http(agent_name, destination, belief, terms, source)
-

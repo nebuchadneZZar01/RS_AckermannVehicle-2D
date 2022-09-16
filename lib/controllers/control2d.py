@@ -1,14 +1,9 @@
-#
-# control2d.py
-#
-
 import math
 from controllers.standard import *
 from models.virtual_robot import *
 from data.geometry import *
 
 class Polar2DController:
-
     def __init__(self, KP_linear, v_max, KP_heading, w_max):
         self.linear  = PIDSat(KP_linear, 0, 0, v_max)
         self.angular = PIDSat(KP_heading, 0, 0, w_max)
@@ -24,7 +19,7 @@ class Polar2DController:
         distance = math.sqrt(dx*dx + dy*dy)
         heading_error = normalize_angle(target_heading - theta)
 
-        if (heading_error > math.pi/2)or(heading_error < -math.pi/2):
+        if (heading_error > math.pi/2) or (heading_error < -math.pi/2):
             distance = -distance
             heading_error = normalize_angle(heading_error + math.pi)
 
@@ -35,7 +30,6 @@ class Polar2DController:
 
 
 class StraightLine2DMotion:
-
     def __init__(self, _vmax, _acc, _dec):
         self.vmax = _vmax
         self.accel = _acc
@@ -63,7 +57,6 @@ class StraightLine2DMotion:
 
 
 class Path2D:
-
     def __init__(self, _vmax, _acc, _dec, _threshold):
         self.threshold = _threshold
         self.path = [ ]
@@ -89,4 +82,3 @@ class Path2D:
                 self.start( (x,y) )
 
         return (x,y)
-

@@ -1,9 +1,4 @@
-#
-#
-#
-
 class Proportional:
-
     def __init__(self, kp):
         self.kp = kp
 
@@ -15,7 +10,6 @@ class Proportional:
         return self.kp * error
 
 class Integral:
-
     def __init__(self, ki):
         self.ki = ki
         self.output = 0
@@ -31,7 +25,6 @@ class Integral:
 
 
 class ProportionalIntegral:
-
     def __init__(self, kp, ki):
         self.p = Proportional(kp)
         self.i = Integral(ki)
@@ -41,7 +34,6 @@ class ProportionalIntegral:
 
 
 class PID:
-
     def __init__(self, kp, ki, kd):
         self.p = Proportional(kp)
         self.i = Integral(ki)
@@ -57,7 +49,6 @@ class PID:
 
 
 class PIDSat:
-
     def __init__(self, kp, ki, kd, saturation, antiwindup = False):
         self.p = Proportional(kp)
         self.i = Integral(ki)
@@ -105,5 +96,3 @@ class PIDSat:
         else:
             self.in_saturation = False
         return output
-
-
