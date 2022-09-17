@@ -24,10 +24,10 @@ class AckermannRobot(RoboticSystem):
         # radius = 2 cm
         # lateral distance = 15 cm
         self.car = AckermannSteering(10, 0.8, 0.02, 0.15)
-        self.speed_controller = PIDSat(8.0, 4.0, 0, 5, True)
-        self.polar_controller = Polar2DController(2.0, 1.5, 40.0, math.pi/3)
+        self.speed_controller = PIDSat(8.0, 4.0, 0, 5, True)                                # kp = 8, ki = 4, ki = 0, saturation = 5 + anti-windup
+        self.polar_controller = Polar2DController(2.0, 1.5, 40.0, math.pi/3)                # linear kp = 2, angular kp = 40, max linear speed = 1.5 m/s, max angular speed = 60 gd/s      
 
-        self.path_controller = Path2D(1.5, 2, 2, 0.02)
+        self.path_controller = Path2D(1.5, 2, 2, 0.02)                                      # max speed = 1.5 m/s, acc = dec = 2 m/s^2, treshold = 2 cm
         self.path_controller.set_path([(0.0, 0.0)])
         
         (x, y, _) = self.get_pose()
@@ -47,6 +47,7 @@ class AckermannRobot(RoboticSystem):
         self.phidias_agent = ''
         start_message_server_http(self)
 
+        # the current command will be sent to the GUI and shown to the user
         self.current_cmd = 'Waiting for command from AI server...'
         self.plotter = DataPlotter()
     
@@ -70,6 +71,7 @@ class AckermannRobot(RoboticSystem):
                 self.target_reached = True
                 if self.phidias_agent != '':
                     print("[ACKERMANN] : Target reached")
+                    # sends a signal to AI server when the robot reaches target/intermediate node
                     Messaging.send_belief(self.phidias_agent, 'target_got', [], 'robot')
                     if self.plot_vars is True: self.show_plot()
 
@@ -84,6 +86,8 @@ class AckermannRobot(RoboticSystem):
     def on_belief(self, _from, name, terms):
         print(_from, name, terms)
         self.phidias_agent = _from
+
+        # when AI server tells the client to reach a node
         if name == 'go_to_node':
             for n in self.world.nodes:
                 if terms[0] == n[0]: 
@@ -102,6 +106,7 @@ class AckermannRobot(RoboticSystem):
             else:
                 self.current_cmd = 'Going to node ' + terms[0]
 
+        # when the user enables via AI server the fuction to draw the path in the GUI
         if name == 'draw_path':
             self.draw_path = not(self.draw_path)
             if self.draw_path is True: 
@@ -111,6 +116,7 @@ class AckermannRobot(RoboticSystem):
                 print('[ACKERMANN] : Path will not be drawned')
                 self.current_cmd = 'Path drawing function disabled'
 
+        # when the user enables via AI server the fuction to plot the variables
         if name == 'plot_vars':
             self.plot_vars = not(self.plot_vars)
             if self.plot_vars is True: 
@@ -120,6 +126,7 @@ class AckermannRobot(RoboticSystem):
                 print('[ACKERMANN] : Variables will not be plotted')
                 self.current_cmd = 'Variables plotting function disabled'
 
+        # when the user generates a certain number of blocks via AI server
         if name == 'generate_blocks':
             if len(terms) == 0:
                 self.world.generateBlocks()
@@ -127,21 +134,29 @@ class AckermannRobot(RoboticSystem):
                 self.world.generateBlocks(terms[0])
             self.current_cmd = 'The blocks have been detected'
 
+        # when the AI server tells the client to calculate the distance (in meters)
+        # between the robot and the nearest node
         if name == 'sense_distance':
             self.calculate_distance()
 
+        # when the AI server tells the client to detect the color located in the
+        # nearest block
         if name == 'sense_color':
             self.detect_color()
 
+        # when the AI server tells the robot's client to take the block (if present)
+        # in the current node
         if name == 'send_held_block':
             for block in self.world.blocks:
                 if block.in_node == terms[0]:
                     self.take_block(block)
 
+        # when the AI server tells the robot's client to release the block
+        # in the reached tower
         if name == 'releaseBlockToTower':
             self.release_block()
 
-
+    # used to bring the last command to GUI, in order to paint it
     def get_current_cmd(self):
         return self.current_cmd
 

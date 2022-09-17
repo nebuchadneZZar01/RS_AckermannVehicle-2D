@@ -1,3 +1,9 @@
+# Standard controlers, such as:
+# - Proportional,
+# - Integral
+# - Derivative
+# - PID + Saturation
+
 class Proportional:
     def __init__(self, kp):
         self.kp = kp

@@ -15,6 +15,7 @@ H = 720     # size
 R = 10      # node radius
 L = 15      # block edge
 
+# dictionary containing the used colors for GUI
 BCOL = {
     'red': QtGui.QColor(255,0,0),
     'green': QtGui.QColor(0,255,0),
@@ -26,6 +27,8 @@ BCOL = {
     'transparent': QtGui.QColor(0,0,0,0)
 }
 
+# list containing string of the colors' name used in
+# the communication between vr_ackermann and the GUI
 colors = ['red', 'green', 'blue']
 
 class CartWindow(QWidget):
